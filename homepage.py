@@ -1,43 +1,57 @@
 import streamlit as st
 import pandas as pd
 
-# web scraping 
-from bs4 import BeautifulSoup
-import requests
+# web scraping / api 
+from PIL import Image
 
-url = "https://fantasy.premierleague.com/api/bootstrap-static/"
+import requests
+import json
+
+url = 'https://fantasy.premierleague.com/api/bootstrap-static/'
+
 response = requests.get(url)
 
-if response.status_code == 200: 
+if response.status_code == 200:
 
-        data = BeautifulSoup(response.text , 'html')
-        print(data)
+        fpl_data = json.loads(response.text) # Parse the JSON content of the API response
 
-from streamlit_option_menu import option_menu
+        player_stats = fpl_data['elements']
 
-df = pd.read_csv('fplAnalytics-playerStautsData (1).csv')
+        #player list 
+        player_list = []
+        for player in player_stats:
+                player_list.append(player['first_name'] + " " + player['second_name'])
+        player_list.sort()
+
+else:
+    print(f"Failed to retrieve FPL data. Status code: {response.status_code}")
 
 st.set_page_config(
 
-        page_title = "Multipage App",
+        page_title = "Fantasy Premier League Tracker",
         page_icon = "⚽️",
 )
 
-def team_page(): #team page define 
-        st.title("Teams")
-
-def main():
-        st.title('Players')
-
 # sidebar 
+from streamlit_option_menu import option_menu
 
 with st.sidebar:
-
         selected = option_menu(
-                menu_title = "Main Menu",
-                options = ["Home", "Teams", "Players"],
+                menu_title = "Fantasy Premier League",
+                options = ["Home" , "Players", "Teams"],
+                icons = ["house","person", "people"]
         )
 
+if selected == "Home":
+        st.title("Fantasy Premier League Tracker")
 
-if selected == "Teams":
-        team_page()
+# players stats search 
+
+if selected == "Players":
+        st.title("Players Search")
+        
+
+        st.write("Players List")
+        result = st.selectbox("Enter player name:", player_list)
+
+
