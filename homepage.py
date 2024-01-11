@@ -311,7 +311,7 @@ if selected == "Teams / Fixtures":
 
                 st.image(third_player_image_url, width = 180)
 
-        # second player details 
+        # third player details 
         with colF3: 
                 st.subheader(sorted_team_detailed_form_data[third_player]['first_name'] + " " + sorted_team_detailed_form_data[third_player]['second_name']) # name
                 st.write(f"Position: {position_getter(sorted_team_detailed_form_data[third_player]['element_type'])}") #positon
@@ -320,9 +320,9 @@ if selected == "Teams / Fixtures":
 
         st.title('')
 
-        # fixtures
+        # fixtures data
 
-        st.subheader(f"{team_data['name']} Fixtures")
+        st.subheader(f"{team_data['name']} Upcoming Fixtures")
 
         fixtures_url = "https://fantasy.premierleague.com/api/fixtures/?future=1" # transfer the data
 
@@ -358,31 +358,114 @@ if selected == "Teams / Fixtures":
 
         def opponent_team_level_getter(dict, team_id): # get opponenet team level
                 if dict['team_a'] == team_id:
-                        return dict['team_h_difficulty']
-                else:
                         return dict['team_a_difficulty']
+                else:
+                        return dict['team_h_difficulty']
+
 
         filter_dict = {}
+        temp = 0 
 
         for match, data in overall_team_fixtures_data.items():
                 
                 filter_dict[data['event']] = {
-                        'Opponent' : teams_list[opponent_team_getter(data, team_id) - 1],
+                        'Gameweek' : data['event'],
+                        'Opponent' : short_teams_list[opponent_team_getter(data, team_id) - 1],
                         'Home / Away' : home_away(data, team_id),
-                        'Diffuculty Level' : (opponent_team_level_getter(data, team_id))
+                        'Difficulty Level' : (opponent_team_level_getter(data, team_id)),
+                        'Photo_Code' : fpl_data['teams'][opponent_team_getter(data, team_id) - 1]['code']
                  }
 
-        print(filter_dict)
+        # get reference keys right 
+        keys_temp = []
+        for key in  filter_dict.keys():
+                keys_temp.append(key)
+
+        keys_temp = keys_temp[:5]
+        
+        
+        # display fixtures
+        colG1, colG2, colG3, colG4, colG5  = st.columns ((2,2,2,2,2))
+        
+
+        with colG1:
+                if keys_temp[0] == '':
+                        st.write('')
+                else:
+                        club_fixture1_image_url = f"https://resources.premierleague.com/premierleague/badges/100/t{filter_dict[keys_temp[0]]['Photo_Code']}.png"
+                        st.write('')
+                        st.image(club_fixture1_image_url, width = 140)
+                        st.write(f'Gameweek: {filter_dict[keys_temp[0]]["Gameweek"]}') 
+                        st.write(f'{filter_dict[keys_temp[0]]["Opponent"]} ({filter_dict[keys_temp[0]]["Home / Away"]})') 
+                        st.write(f'Difficulty Level: {filter_dict[keys_temp[0]]["Difficulty Level"]}') 
+
+        with colG2:
+                if keys_temp[1] == '':
+                        st.write('')
+                else:
+                        club_fixture1_image_url = f"https://resources.premierleague.com/premierleague/badges/100/t{filter_dict[keys_temp[1]]['Photo_Code']}.png"
+                        st.write('')
+                        st.image(club_fixture1_image_url, width = 140)
+                        st.write(f'Gameweek: {filter_dict[keys_temp[1]]["Gameweek"]}')
+                        st.write(f'VS {filter_dict[keys_temp[1]]["Opponent"]} ({filter_dict[keys_temp[1]]["Home / Away"]})') 
+                        st.write(f'Difficulty Level: {filter_dict[keys_temp[1]]["Difficulty Level"]}') 
+
+        with colG3:
+                if keys_temp[2] == '':
+                        st.write('')
+                else:
+                        club_fixture1_image_url = f"https://resources.premierleague.com/premierleague/badges/100/t{filter_dict[keys_temp[2]]['Photo_Code']}.png"
+                        st.write('')
+                        st.image(club_fixture1_image_url, width = 140)
+                        st.write(f'Gameweek: {filter_dict[keys_temp[2]]["Gameweek"]}')
+                        st.write(f'VS {filter_dict[keys_temp[2]]["Opponent"]} ({filter_dict[keys_temp[2]]["Home / Away"]})') 
+                        st.write(f'Difficulty Level: {filter_dict[keys_temp[2]]["Difficulty Level"]}') 
+
+        with colG4:
+                if keys_temp[3] == '':
+                        st.write('')
+                else:
+                        club_fixture1_image_url = f"https://resources.premierleague.com/premierleague/badges/100/t{filter_dict[keys_temp[3]]['Photo_Code']}.png"
+                        st.write('')
+                        st.image(club_fixture1_image_url, width = 140)
+                        st.write(f'Gameweek: {filter_dict[keys_temp[3]]["Gameweek"]}')
+                        st.write(f'VS {filter_dict[keys_temp[3]]["Opponent"]} ({filter_dict[keys_temp[3]]["Home / Away"]})') 
+                        st.write(f'Difficulty Level: {filter_dict[keys_temp[3]]["Difficulty Level"]}') 
+
+        with colG5:
+                if keys_temp[4] == '':
+                        st.write('')
+                else:
+                        club_fixture1_image_url = f"https://resources.premierleague.com/premierleague/badges/100/t{filter_dict[keys_temp[4]]['Photo_Code']}.png"
+                        st.write('')
+                        st.image(club_fixture1_image_url, width = 140)
+                        st.write(f'Gameweek: {filter_dict[keys_temp[4]]["Gameweek"]}')
+                        st.write(f'VS {filter_dict[keys_temp[4]]["Opponent"]} ({filter_dict[keys_temp[4]]["Home / Away"]})') 
+                        st.write(f'Difficulty Level: {filter_dict[keys_temp[4]]["Difficulty Level"]}') 
+
+
+        # fixtures graph
+        st.title('')
+        st.subheader(f"{team_data['name']} Fixtures Difficulty Bar Chart")
+        difficulty_list = []
+        gameweek_list = []
+
+        for keys, values in filter_dict.items():
+                gameweek_list.append(values['Gameweek'])
+                difficulty_list.append(values['Difficulty Level'])
+
+        display_fixtures_dict = {
+                "Gameweek" : gameweek_list,
+                'Difficulty Level' : difficulty_list 
+        }
                 
 
-        
+        fixtures_df = pd.DataFrame(display_fixtures_dict)
+        fixtures_fig = px.bar(fixtures_df, x = 'Gameweek', y = 'Difficulty Level')
+        st.plotly_chart(fixtures_fig)
 
 
 
-        
-
-
-        
 
 
 
