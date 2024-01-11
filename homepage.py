@@ -272,7 +272,7 @@ if selected == "Teams / Fixtures":
                 st.subheader(sorted_team_detailed_form_data[first_player]['first_name'] + " " + sorted_team_detailed_form_data[first_player]['second_name']) # name
                 st.write(f"Position: {position_getter(sorted_team_detailed_form_data[first_player]['element_type'])}") #positon
                 st.write(f"Form: {sorted_team_detailed_form_data[first_player]['form']}")
-                st.write(f"Price: {sorted_team_detailed_form_data[first_player]['now_cost'] / 10}")
+                st.write(f"Price: £{sorted_team_detailed_form_data[first_player]['now_cost'] / 10}")
 
         # second player 
 
@@ -294,7 +294,7 @@ if selected == "Teams / Fixtures":
                 st.subheader(sorted_team_detailed_form_data[second_player]['first_name'] + " " + sorted_team_detailed_form_data[second_player]['second_name']) # name
                 st.write(f"Position: {position_getter(sorted_team_detailed_form_data[second_player]['element_type'])}") #positon
                 st.write(f"Form: {sorted_team_detailed_form_data[second_player]['form']}")
-                st.write(f"Price: {sorted_team_detailed_form_data[second_player]['now_cost'] / 10}")
+                st.write(f"Price: £{sorted_team_detailed_form_data[second_player]['now_cost'] / 10}")
 
         # third player 
 
@@ -316,7 +316,7 @@ if selected == "Teams / Fixtures":
                 st.subheader(sorted_team_detailed_form_data[third_player]['first_name'] + " " + sorted_team_detailed_form_data[third_player]['second_name']) # name
                 st.write(f"Position: {position_getter(sorted_team_detailed_form_data[third_player]['element_type'])}") #positon
                 st.write(f"Form: {sorted_team_detailed_form_data[third_player]['form']}")
-                st.write(f"Price: {sorted_team_detailed_form_data[third_player]['now_cost'] / 10}")
+                st.write(f"Price: £{sorted_team_detailed_form_data[third_player]['now_cost'] / 10}")
 
         st.title('')
 
@@ -396,7 +396,7 @@ if selected == "Teams / Fixtures":
                         st.write('')
                         st.image(club_fixture1_image_url, width = 140)
                         st.write(f'Gameweek: {filter_dict[keys_temp[0]]["Gameweek"]}') 
-                        st.write(f'{filter_dict[keys_temp[0]]["Opponent"]} ({filter_dict[keys_temp[0]]["Home / Away"]})') 
+                        st.write(f'VS {filter_dict[keys_temp[0]]["Opponent"]} ({filter_dict[keys_temp[0]]["Home / Away"]})') 
                         st.write(f'Difficulty Level: {filter_dict[keys_temp[0]]["Difficulty Level"]}') 
 
         with colG2:
@@ -449,27 +449,23 @@ if selected == "Teams / Fixtures":
         st.subheader(f"{team_data['name']} Fixtures Difficulty Bar Chart")
         difficulty_list = []
         gameweek_list = []
+        opponent_list = []
 
         for keys, values in filter_dict.items():
                 gameweek_list.append(values['Gameweek'])
                 difficulty_list.append(values['Difficulty Level'])
+                opponent_list.append(values['Opponent'])
 
         display_fixtures_dict = {
                 "Gameweek" : gameweek_list,
-                'Difficulty Level' : difficulty_list 
+                'Difficulty Level' : difficulty_list ,
+                'Opponent' : opponent_list
         }
                 
 
         fixtures_df = pd.DataFrame(display_fixtures_dict)
-        fixtures_fig = px.bar(fixtures_df, x = 'Gameweek', y = 'Difficulty Level')
+        fixtures_fig = px.bar(fixtures_df, x = 'Gameweek', y = 'Difficulty Level', text = 'Opponent')
+        fixtures_fig.update_layout(font = dict(size = 20))
         st.plotly_chart(fixtures_fig)
-
-
-
-
-
-
-
-        
 
 
