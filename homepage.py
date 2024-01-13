@@ -33,10 +33,78 @@ if response.status_code == 200:
         for teams in fpl_data["teams"]:
                 teams_list.append(teams['name'])
 
-        # short form 
+        # team short form 
         short_teams_list = []
         for teams in fpl_data["teams"]:
                 short_teams_list.append(teams['short_name'])
+
+        # goalkeeper list
+        goalkeeper_details_list = []
+        sorted_goalkeeper_name_list = []
+        unsorted_goalkeeper_name_list = []
+        for player in player_stats:
+                if player['element_type'] == 1:
+                        goalkeeper_details_list.append(player)
+                        sorted_goalkeeper_name_list.append(player['first_name'] + " " + player['second_name'])
+                        unsorted_goalkeeper_name_list.append(player['first_name'] + " " + player['second_name'])
+        sorted_goalkeeper_name_list.sort()
+        goalkeeper_details_list.insert(0,'None')
+        sorted_goalkeeper_name_list.insert(0,'None')
+        unsorted_goalkeeper_name_list.insert(0,'None')
+
+        # defender list
+        defender_details_list = []
+        sorted_defender_name_list = []
+        unsorted_defender_name_list = []
+        for player in player_stats:
+                if player['element_type'] == 2:
+                        defender_details_list.append(player)
+                        sorted_defender_name_list.append(player['first_name'] + " " + player['second_name'])
+                        unsorted_defender_name_list.append(player['first_name'] + " " + player['second_name'])
+        sorted_defender_name_list.sort()
+        defender_details_list.insert(0,'None')
+        sorted_defender_name_list.insert(0,'None')
+        unsorted_defender_name_list.insert(0,'None')
+
+        # midfielder list
+        midfielder_details_list = []
+        sorted_midfielder_name_list = []
+        unsorted_midfielder_name_list = []
+        for player in player_stats:
+                if player['element_type'] == 3:
+                        midfielder_details_list.append(player)
+                        sorted_midfielder_name_list.append(player['first_name'] + " " + player['second_name'])
+                        unsorted_midfielder_name_list.append(player['first_name'] + " " + player['second_name'])
+        sorted_midfielder_name_list.sort()
+        midfielder_details_list.insert(0,'None')
+        sorted_midfielder_name_list.insert(0,'None')
+        unsorted_midfielder_name_list.insert(0,'None')
+
+        # forward list
+        forward_details_list = []
+        sorted_forward_name_list = []
+        unsorted_forward_name_list = []
+        for player in player_stats:
+                if player['element_type'] == 4:
+                        forward_details_list.append(player)
+                        sorted_forward_name_list.append(player['first_name'] + " " + player['second_name'])
+                        unsorted_forward_name_list.append(player['first_name'] + " " + player['second_name'])
+        sorted_forward_name_list.sort()
+        forward_details_list.insert(0,'None')
+        sorted_forward_name_list.insert(0,'None')
+        unsorted_forward_name_list.insert(0,'None')
+
+        #fixtures
+        fixtures_url = "https://fantasy.premierleague.com/api/fixtures/?future=1" # transfer the data
+
+        fixtures_response = requests.get(fixtures_url)
+
+        if response.status_code == 200:
+
+                fixtures_data = json.loads(fixtures_response.text) # Parse the JSON content of the API response
+
+        else:
+                print(f"Failed to retrieve FPL data. Status code: {response.status_code}")
 
 else:
     print(f"Failed to retrieve FPL data. Status code: {response.status_code}")
@@ -53,7 +121,7 @@ from streamlit_option_menu import option_menu
 
 with st.sidebar:
         selected = option_menu(
-                menu_title = "Fantasy Premier League",
+                menu_title = "Fantasy Premier League Tracker",
                 options = ["Home" , "Players Detailed", "Teams / Fixtures", "Player Rankings", "Team Builder"],
                 icons = ["house","person", "people", "bar-chart-fill", "cone-striped"]
         )
@@ -324,17 +392,6 @@ if selected == "Teams / Fixtures":
 
         st.subheader(f"{team_data['name']} Upcoming Fixtures")
 
-        fixtures_url = "https://fantasy.premierleague.com/api/fixtures/?future=1" # transfer the data
-
-        fixtures_response = requests.get(fixtures_url)
-
-        if response.status_code == 200:
-
-                fixtures_data = json.loads(fixtures_response.text) # Parse the JSON content of the API response
-
-        else:
-                print(f"Failed to retrieve FPL data. Status code: {response.status_code}")
-
         overall_team_fixtures_data = {}
 
         team_id = team_data['id']
@@ -467,5 +524,358 @@ if selected == "Teams / Fixtures":
         fixtures_fig = px.bar(fixtures_df, x = 'Gameweek', y = 'Difficulty Level', text = 'Opponent')
         fixtures_fig.update_layout(font = dict(size = 20))
         st.plotly_chart(fixtures_fig)
+
+
+
+
+if selected == "Team Builder":
+        
+        #formations 
+        team_builder_team_details = []
+
+        formations_dict = {
+                '3 4 3' : {'Defender' : 3, 'Midfielder' : 4, 'Forward' : 3},
+                '3 5 2' : {'Defender' : 3, 'Midfielder' : 5, 'Forward' : 2},
+                '4 3 3' : {'Defender' : 4, 'Midfielder' : 3, 'Forward' : 3},
+                '4 4 2' : {'Defender' : 4, 'Midfielder' : 4, 'Forward' : 2},
+                '4 5 1' : {'Defender' : 4, 'Midfielder' : 5, 'Forward' : 1},
+                '5 3 2' : {'Defender' : 5, 'Midfielder' : 3, 'Forward' : 2},
+                '5 4 1' : {'Defender' : 5, 'Midfielder' : 4, 'Forward' : 1}
+        }
+
+        formations_list = []
+
+        for formations in formations_dict.keys():
+                formations_list.append(formations)
+
+        user_formation = st.selectbox("Choose desired formation:" , formations_list)
+
+        user_formation = formations_dict[user_formation]
+
+        # remaining money for user 
+
+        user_bank = 100
+
+        # form 
+
+        user_team_form = 0
+
+        # average points per game
+
+        user_team_average_points = 0 
+
+        user_goalkeeper = 0
+
+        filler1, goalkeeper_grid ,filler2  = st.columns ((4,2,4))
+        #goalkeeper
+        with goalkeeper_grid:
+                goalkeeper = '1'
+                
+                player_searched_team_builder = st.selectbox("Enter player name:", sorted_goalkeeper_name_list, key = goalkeeper)
+
+                if player_searched_team_builder == 'None':
+                        goalkeeper_jersey_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_0_1-66.webp"
+                        st.image(goalkeeper_jersey_url, width=70)
+                        st.write("N/A") # web name
+                        st.write("£0") # price 
+                else:
+                        #find player num in list
+                        searched_player_num = 0
+                        temp = 0
+
+                        for player in unsorted_goalkeeper_name_list:
+                                if player == player_searched_team_builder:
+                                        searched_player_num = temp
+                                else:
+                                        temp += 1 
+
+                        player_team_code = goalkeeper_details_list[searched_player_num]['team_code'] # get team id 
+
+                        goalkeeper_jersey_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{player_team_code}_1-66.webp"
+                        #jersey photo
+                        st.image(goalkeeper_jersey_url, width=70)
+                        st.write(goalkeeper_details_list[searched_player_num]['web_name']) # web name
+                        st.write(f"£{goalkeeper_details_list[searched_player_num]['now_cost'] / 10}") # price 
+                        user_goalkeeper = goalkeeper_details_list[searched_player_num]
+
+        #defenders      
+        defender_columns = st.columns (user_formation['Defender'])
+
+        def defender_player_builder (player_search_key, number):
+                player_searched_team_builder = st.selectbox("Enter player name:", sorted_defender_name_list, key = player_search_key)
+
+                if player_searched_team_builder == 'None':
+                        defender_jersey_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_0-66.webp"
+                        st.image(defender_jersey_url, width=70)
+                        st.write("N/A") # web name
+                        st.write("£0") # price 
+                else:
+                        #find player num in list
+                        searched_player_num = 0
+                        temp = 0
+
+                        for player in unsorted_defender_name_list:
+                                if player == player_searched_team_builder:
+                                        searched_player_num = temp
+                                else:
+                                        temp += 1 
+
+                        player_team_code = defender_details_list[searched_player_num]['team_code'] # get team id 
+
+                        defender_jersey_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{player_team_code}-66.webp"
+                        #jersey photo
+                        st.image(defender_jersey_url, width=70)
+                        st.write(defender_details_list[searched_player_num]['web_name']) # web name
+                        st.write(f"£{defender_details_list[searched_player_num]['now_cost'] / 10}") # price
+                        user_defender [number] = defender_details_list[searched_player_num]
+
+        user_defender = [0]*5
+        for i, defender_grid in enumerate(defender_columns):
+                if i == 0 : 
+                        with defender_grid:
+                                defender1 = 'defender1'
+                                def_1 = 0
+                                defender_player_builder(defender1, def_1)
+
+                if i == 1 : 
+                        with defender_grid:
+                                defender2 = 'defender2'
+                                def_2 = 1
+                                defender_player_builder(defender2, def_2)
+                
+                if i == 2 : 
+                        with defender_grid:
+                                defender3 = 'defender3'
+                                def_3 = 2
+                                defender_player_builder(defender3, def_3)
+                
+                if i == 3 : 
+                        with defender_grid:
+                                defender4 = 'defender4'
+                                def_4 = 3
+                                defender_player_builder(defender4 ,def_4)
+
+                if i == 4 : 
+                        with defender_grid:
+                                defender5 = 'defender5'
+                                def_5 = 4
+                                defender_player_builder(defender5, def_5)
+       
+        #midfielders 
+        midfielder_columns = st.columns (user_formation['Midfielder'])
+
+        def midfielder_player_builder (player_search_key, number):
+                player_searched_team_builder = st.selectbox("Enter player name:", sorted_midfielder_name_list, key = player_search_key)
+
+                if player_searched_team_builder == 'None':
+                        midfielder_jersey_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_0-66.webp"
+                        st.image(midfielder_jersey_url, width=70)
+                        st.write("N/A") # web name
+                        st.write("£0") # price 
+                else:
+                        #find player num in list
+                        searched_player_num = 0
+                        temp = 0
+
+                        for player in unsorted_midfielder_name_list:
+                                if player == player_searched_team_builder:
+                                        searched_player_num = temp
+                                else:
+                                        temp += 1 
+
+                        player_team_code = midfielder_details_list[searched_player_num]['team_code'] # get team id 
+
+                        midfielder_jersey_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{player_team_code}-66.webp"
+                        #jersey photo
+                        st.image(midfielder_jersey_url, width=70)
+                        st.write(midfielder_details_list[searched_player_num]['web_name']) # web name
+                        st.write(f"£{midfielder_details_list[searched_player_num]['now_cost'] / 10}") # price
+                        user_midfielder [number] = midfielder_details_list[searched_player_num]
+
+        user_midfielder = [0] * 5 
+        for i, midfielder_grid in enumerate(midfielder_columns):
+                if i == 0 : 
+                        with midfielder_grid:
+                                midfielder1 = 'midfielder1'
+                                mid_1 = 0
+                                midfielder_player_builder(midfielder1, mid_1)
+
+                if i == 1 : 
+                        with midfielder_grid:
+                                midfielder2 = 'midfielder'
+                                mid_2 = 1
+                                midfielder_player_builder(midfielder2, mid_2)
+                
+                if i == 2 : 
+                        with midfielder_grid:
+                                midfielder3 = 'midfielder3'
+                                mid_3 = 2
+                                midfielder_player_builder(midfielder3, mid_3)
+                
+                if i == 3 : 
+                        with midfielder_grid:
+                                midfielder4 = 'midfielder4'
+                                mid_4 = 3
+                                midfielder_player_builder(midfielder4, mid_4)
+
+                if i == 4 : 
+                        with midfielder_grid:
+                                midfielder5 = 'midfielder5'
+                                mid_5 = 4
+                                midfielder_player_builder(midfielder5, mid_5)
+                
+
+        #forwards
+        if user_formation['Forward'] == 1:
+                forward_columns = st.columns ((4,2,4))
+        else:
+                forward_columns = st.columns (user_formation['Forward'])
+
+        def forward_player_builder (player_search_key, number):
+                player_searched_team_builder = st.selectbox("Enter player name:", sorted_forward_name_list, key = player_search_key)
+
+                if player_searched_team_builder == 'None':
+                        forward_jersey_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_0-66.webp"
+                        st.image(forward_jersey_url, width=70)
+                        st.write("N/A") # web name
+                        st.write("£0") # price 
+                else:
+                        #find player num in list
+                        forward_searched_player_num = 0
+                        temp = 0
+
+                        for player in unsorted_forward_name_list:
+                                if player == player_searched_team_builder:
+                                        forward_searched_player_num = temp
+                                else:
+                                        temp += 1 
+
+                        print(forward_searched_player_num)
+
+                        player_team_code = forward_details_list[forward_searched_player_num]['team_code'] # get team id 
+
+                        forward_jersey_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{player_team_code}-66.webp"
+                        #jersey photo
+                        st.image(forward_jersey_url, width=70)
+                        st.write(forward_details_list[forward_searched_player_num]['web_name']) # web name
+                        st.write(f"£{forward_details_list[forward_searched_player_num]['now_cost'] / 10}") # price
+                        user_forward [number] = forward_details_list[forward_searched_player_num]
+
+        user_forward = [0] * 3 
+
+        for i, forward_grid in enumerate(forward_columns):
+                if i == 0 : 
+                        if user_formation['Forward'] == 1:
+                                continue
+                        else:
+                                with forward_grid:
+                                                forward1 = 'forward1'
+                                                for_1 = 0
+                                                forward_player_builder(forward1, for_1)
+
+
+                if i == 1 : 
+                        with forward_grid:
+                                forward2 = 'forward2'
+                                for_2 = 1
+                                forward_player_builder(forward2,for_2)
+                
+                if i == 2 : 
+                        if user_formation['Forward'] == 1:
+                                continue
+                        with forward_grid:
+                                        forward3 = 'forward3'
+                                        for_3 = 2
+                                        forward_player_builder(forward3, for_3)
+
+        complete_user_team = []
+        abc = 0
+
+        for player in user_defender:
+                if player == 0:
+                        continue
+                complete_user_team.append(player)
+        for player in user_midfielder:
+                if player == 0:
+                        continue
+                complete_user_team.append(player)
+        for player in user_forward:
+                if player == 0:
+                        continue
+                complete_user_team.append(player)
+        if user_goalkeeper == 0:
+                abc = 0
+        else:               
+                complete_user_team.append(user_goalkeeper)
+
+
+        # remaining money 
+        for price in complete_user_team:
+                if price == 0:
+                        user_bank = 100
+                else:
+                        user_bank = user_bank - (price['now_cost'] /10)
+        temp_form = 0
+        # form 
+        for form in complete_user_team:
+        
+                if form == 0:
+                        user_team_form = 0 
+                else:
+                        temp_form = float(form['form'])
+                        user_team_form = user_team_form + temp_form
+
+        # average points
+        temp_points = 0
+        for points in complete_user_team:
+                if points == 0:
+                        user_team_average_points = 0 
+                else:
+                        temp_points = float(points['total_points'])
+                        user_team_average_points =  user_team_average_points + temp_points
+        
+        current_gameweek = fixtures_data[0]['event'] - 1 
+        user_team_average_points = user_team_average_points / current_gameweek
+
+        # metrics 
+
+        colH1, colH2, colH3 = st.columns (3)
+
+        current_gameweek = fixtures_data[0]['event'] - 1 
+
+        # average price
+        colH1.metric("Remaining Money", f"£{round(user_bank, 1)}")
+
+        # form
+        colH2.metric("Team Form", f"{round(user_team_form , 2)}")
+
+        #points per game for whole team
+        colH3.metric("Points Per Gameweek (Team)", round(user_team_average_points ))
+        
+                
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
