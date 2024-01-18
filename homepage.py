@@ -122,8 +122,8 @@ from streamlit_option_menu import option_menu
 with st.sidebar:
         selected = option_menu(
                 menu_title = "Fantasy Premier League Tracker",
-                options = ["Home" , "Players Detailed", "Teams / Fixtures", "Player Rankings", "Team Builder"],
-                icons = ["house","person", "people", "bar-chart-fill", "cone-striped"]
+                options = ["Home" , "Players Detailed", "Teams / Fixtures", "Player Rankings", "Team Builder", "User Info"],
+                icons = ["house", "people", "calendar-event", "bar-chart-fill", "cone-striped", "person-circle"]
         )
 
 if selected == "Home":
@@ -139,7 +139,6 @@ def position_getter(num):
                 return "Midfielder"
         else:
                 return "Forward"
-
 
 # players stats search 
 
@@ -750,8 +749,6 @@ if selected == "Team Builder":
                                 else:
                                         temp += 1 
 
-                        print(forward_searched_player_num)
-
                         player_team_code = forward_details_list[forward_searched_player_num]['team_code'] # get team id 
 
                         forward_jersey_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{player_team_code}-66.webp"
@@ -852,6 +849,300 @@ if selected == "Team Builder":
         #points per game for whole team
         colH3.metric("Points Per Gameweek (Team)", round(user_team_average_points ))
         
+if selected == "Player Rankings":
+
+        st.title("Rankings by Categories")
+
+        categories_dict = {
+                'Price' : 'now_cost',
+                'Goals' : 'goals_scored',
+                'Assists' : 'assists',
+                'Clean Sheets': 'clean_sheets',
+                'Saves' : 'saves',
+                'Minutes Played' : 'minutes',
+                'Points' : 'total_points',
+                'Points per Game' : 'points_per_game',
+                'Most Transferred In' : 'transfers_in_event',
+                'Most Transferred Out' : 'transfers_out_event',
+                'Expected Goals' : 'expected_goals_per_90',
+                'Expected Assists' : 'expected_assists_per_90',
+                'Expected Goal Involvements' : 'expected_goal_involvements_per_90',
+                'Form' : 'form',
+                'Most Bonus Points' : 'bonus',
+                'Yellow Cards' : 'yellow_cards',
+                'Red Cards' : 'red_cards',
+                'ICT Index' : 'ict_index'
+        }
+
+        categories_list = []
+
+        for categories in categories_dict.keys():
+                categories_list.append(categories)
+
+        categories_searched = st.selectbox('Categories Ranking:', categories_list)
+
+        later_use = ''
+
+        later_use = categories_searched
+
+        categories_searched = categories_dict[categories_searched]
+
+        prevent_string_dict = {}
+
+        prevent_string_dict = player_stats
+
+        for player in prevent_string_dict:
+                player['ict_index'] = float(player['ict_index'])
+
+        sorted_specific_category_data = sorted(prevent_string_dict, key=lambda x: x[categories_searched], reverse = True)
+        st.title('')
+        st.title('')
+
+        #player details
+        def visualise_player (ranking, column1, column2, column3):
+
+                with column1:
+                        st.subheader(f"{ranking + 1}.")
+
+                with column2:
+                        player_image_url = f"https://resources.premierleague.com/premierleague/photos/players/110x140/p{sorted_specific_category_data[ranking]['code']}.png"
+
+                        st.image(player_image_url, width = 180)
+
+                with column3:
+                        # player details 
+                        st.subheader(sorted_specific_category_data[ranking]['first_name'] + " " + sorted_specific_category_data[ranking]['second_name']) # name
+                        st.write(f"Position: {position_getter(sorted_specific_category_data[ranking]['element_type'])}") #positon
+                        st.write(f"Club: {teams_list[sorted_specific_category_data[ranking]['team'] - 1]}")
+                        st.write(f"Price: £{sorted_specific_category_data[ranking]['now_cost'] / 10}")
+
+                        if later_use != 'Price' :
+                                st.write(f"{later_use}: {sorted_specific_category_data[ranking][categories_searched]}")
+
+
+        #columns
+
+        columns = ['I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R']
+
+        for col in columns:
+                globals()[f'col{col}1'], globals()[f'col{col}2'], globals()[f'col{col}3'] = st.columns((2, 4, 4))
+                st.title('')
+
+        #visualising
+
+        temp = 0 
+        for index, col in enumerate(columns):
+                visualise_player(index, globals()[f'col{col}1'], globals()[f'col{col}2'], globals()[f'col{col}3'])
+
+if selected == 'User Info':
+        st.title("User Info ")
+
+        user_id = st.number_input("Enter your user number (Can be found on your teams page): ", min_value = 0)
+
+        if user_id != 0:
+                
+                user_link = f"https://fantasy.premierleague.com/api/entry/{user_id}/"
+
+                user_response = requests.get(user_link)
+
+                if user_response.status_code == 200:
+
+                        user_overall_data = json.loads(user_response.text) #parse json
+
+                        colS1, colS2, colS3 = st.columns ((3))
+
+                        with colS1:
+
+                                fav_team_code = user_overall_data['favourite_team']
+
+                                for teams in fpl_data['teams']:
+
+                                        if fav_team_code == teams['id']:
+                                                fav_team_code = teams['code']
+
+                                team_image_url = f"https://resources.premierleague.com/premierleague/badges/100/t{fav_team_code}.png"
+
+                                st.image(team_image_url, width = 120)
+
+
+                        with colS2:
+
+                                st.write(f"User Name: {user_overall_data['player_first_name']} {user_overall_data['player_last_name']}")
+                                st.write(f"User Region: {user_overall_data['player_region_name']}")
+                                st.write(f"Active Years: {user_overall_data['years_active']} ")
+
+                        with colS3:
+
+                                st.write(f"Overall Points: {user_overall_data['summary_overall_points']}")
+                                st.write(f"Overall Rank: {user_overall_data['summary_overall_rank']}")
+                                st.write(f"Current Gameweek Points: {user_overall_data['summary_event_points']}")
+
+                        st.title("Team Points")
+
+                        gameweek_number = st.number_input("Enter the Gameweek to be checked: ", min_value = 1, max_value = user_overall_data['current_event'] )
+
+                        gameweek_check_link = f"https://fantasy.premierleague.com/api/entry/{user_id}/event/{gameweek_number}/picks/"
+
+                        user_gameweek_response = requests.get(gameweek_check_link)
+
+                        if user_gameweek_response.status_code == 200:
+
+                                user_gameweek_data = json.loads(user_gameweek_response.text)
+
+                        else:
+                                st.write('User ID not found, please re-enter.')
+
+                        user_players = []
+
+                        user_players_detailed = []
+
+                        for players in user_gameweek_data['picks'][:11]:
+
+                                user_players.append(players['element'])
+
+                        for players in user_players:
+
+                                for player in player_stats:
+
+                                        if players == player['id']:
+
+                                                user_players_detailed.append(player)
+
+                        position_count = {
+                                'Defenders' : 0,
+                                'Midfielders' : 0,
+                                'Forward' : 0
+                        }
+
+                        for player in user_players_detailed:
+
+                                if player['element_type'] == 2:
+                                        position_count['Defenders'] += 1
+                                elif player['element_type'] == 3:
+                                        position_count['Midfielders'] += 1
+                                elif player['element_type'] == 4:
+                                        position_count['Forward'] += 1
+
+                        st.subheader(user_overall_data['name'])
+
+                        def player_visualise (number):
+
+                                individual_url = f"https://fantasy.premierleague.com/api/element-summary/{user_players_detailed[number]['id']}/" # transfer the data
+
+                                individual_response = requests.get(individual_url)
+
+                                if response.status_code == 200:
+
+                                        individual_player_data = json.loads(individual_response.text) # Parse the JSON content of the API response
+                                else:
+                                        print("Player cannot be found")
+
+                                if user_players_detailed[number]['element_type'] == 1:
+                                        player_jersey_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{user_players_detailed[number]['team_code']}_1-66.webp"
+                                else:
+                                        player_jersey_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{user_players_detailed[number]['team_code']}-66.webp"
+
+                                st.image(player_jersey_url, width = 70)
+                                st.write(user_players_detailed[number]['web_name']) # web name
+                                st.write(f"Points: {individual_player_data['history'][gameweek_number - 1]['total_points']}")
+                                st.write(f"Price: {individual_player_data['history'][gameweek_number - 1]['value'] / 10}")
+
+
+                        colT1, colT2, colT3 = st.columns((4,2,4))
+
+                        with colT2:
+                                player_visualise(0)
+
+                        defender_columns = st.columns (position_count['Defenders'])
+
+                        user_defender = [0]*5
+
+                        for i, defender_grid in enumerate(defender_columns):
+                                if i == 0 : 
+                                        with defender_grid:
+                                                player_visualise(1)
+
+                                if i == 1 : 
+                                        with defender_grid:
+                                                player_visualise(2)
+                                
+                                if i == 2 : 
+                                        with defender_grid:
+                                                player_visualise(3)
+                                
+                                if i == 3 : 
+                                        with defender_grid:
+                                                player_visualise(4)
+
+                                if i == 4 : 
+                                        with defender_grid:
+                                                player_visualise(5)
+
+                        midfielder_columns = st.columns (position_count['Midfielders'])
+
+                        for i, midfielder_grid in enumerate(midfielder_columns):
+                                if i == 0 : 
+                                        with midfielder_grid:
+                                                player_visualise(position_count['Defenders'] + 1 )
+
+                                if i == 1 : 
+                                        with midfielder_grid:
+                                                player_visualise(position_count['Defenders'] + 2 )
+                                
+                                if i == 2 : 
+                                        with midfielder_grid:
+                                                player_visualise(position_count['Defenders'] + 3 )
+                                
+                                if i == 3 : 
+                                        with midfielder_grid:
+                                                player_visualise(position_count['Defenders'] + 4 )
+
+                                if i == 4 : 
+                                        with midfielder_grid:
+                                                player_visualise(position_count['Defenders'] + 5 )
+
+                        remaining = (10 - position_count['Defenders'] - position_count['Midfielders'])
+
+                        if remaining == 1:
+                                forward_columns = st.columns ((4,2,4))
+                        else:
+                                forward_columns = st.columns (remaining) 
+
+                        for i, forward_grid in enumerate(forward_columns):
+                                if i == 0 : 
+                                        if remaining == 1:
+                                                continue
+                                        elif remaining == 2:
+                                                with forward_grid:
+                                                        player_visualise(-2)
+                                        else:
+                                                player_visualise(-1)
+
+
+                                if i == 1 : 
+                                        if remaining == 1:
+                                                with forward_grid:
+                                                        player_visualise(-1)
+                                        elif remaining == 2:
+                                                with forward_grid:
+                                                        player_visualise(-1)
+                                
+                                if i == 2 : 
+                                        if remaining == 1:
+                                                continue
+                                        with forward_grid:
+                                                if remaining == 3:
+                                                        player_visualise(-1)
+
+
+                        
+
+                        
+
+
+                                
+
+
                 
 
 
@@ -860,7 +1151,7 @@ if selected == "Team Builder":
 
 
 
-
+                
 
 
 
