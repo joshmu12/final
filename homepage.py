@@ -1116,7 +1116,8 @@ if selected == 'User Info':
                                                 with forward_grid:
                                                         player_visualise(-2)
                                         else:
-                                                player_visualise(-1)
+                                                with forward_grid:
+                                                        player_visualise(-3)
 
 
                                 if i == 1 : 
@@ -1126,6 +1127,9 @@ if selected == 'User Info':
                                         elif remaining == 2:
                                                 with forward_grid:
                                                         player_visualise(-1)
+                                        else:
+                                                with forward_grid:
+                                                        player_visualise(-2)
                                 
                                 if i == 2 : 
                                         if remaining == 1:
