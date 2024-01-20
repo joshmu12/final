@@ -126,8 +126,64 @@ with st.sidebar:
                 icons = ["house", "people", "calendar-event", "bar-chart-fill", "cone-striped", "person-circle"]
         )
 
+
 if selected == "Home":
         st.title("Fantasy Premier League Tracker")
+
+        colU1, colU2 = st.columns((4,6))
+        with colU1:
+                st.image("https://www.premierleague.com/resources/rebrand/v7.137.1/i/elements/pl-main-logo.png", width = 150)
+        with colU2:
+                st.title('')
+                st.write(f"This is a very legitimate tracker for Fantasy Premier League")
+                st.write("Created by Joshua Hung")
+
+        st.title('')
+        st.title("Functions")
+        st.title('')
+
+        colV1, colV2 = st.columns((4,6))
+        with colV1:
+                st.image("https://static.vecteezy.com/system/resources/previews/010/159/990/original/people-icon-sign-symbol-design-free-png.png", width = 200)
+        with colV2:
+                st.subheader("Players Detailed")
+                st.write('Able to check every detail stat of every single player in the Premier League, such as goals, assists, Fantasy price and etc.')
+
+        st.title('')
+
+        colW1, colW2 = st.columns((4,6))
+        with colW1:
+                st.image("https://static.vecteezy.com/system/resources/previews/005/988/959/original/calendar-icon-free-vector.jpg", width = 200)
+        with colW2:
+                st.subheader("Teams / Fixtures")
+                st.write("Every team's hottest performing players can be acessed here. Fixtures can also be checked alongside the diffuculty fixture graph of the team.")
+
+        st.title('')
+
+        colX1, colX2 = st.columns((4,6))
+        with colX1:
+                st.image("https://www.shareicon.net/data/512x512/2015/12/01/680764_graph_512x512.png", width = 200)
+        with colX2:
+                st.subheader("Player Rankings")
+                st.write("Top 10 players of any respective stat can be foundh here, such as price and goals. Their clubs and numbers for the respective stat is also shown.")
+
+        st.title('')
+
+        colY1, colY2 = st.columns((4,6))
+        with colY1:
+                st.image("https://us.123rf.com/450wm/puruan/puruan1701/puruan170101084/70489434-road-sign-cone-icon-in-single-color-danger-forbidden-plastic-transportation.jpg", width = 200)
+        with colY2:
+                st.subheader("Team Builder")
+                st.write("Users can build their own team with every player possible in the Premier League. The built team's price and average points will be shown.")
+
+        st.title('')
+
+        colZ1, colZ2 = st.columns((4,6))
+        with colZ1:
+                st.image("https://static-00.iconduck.com/assets.00/person-circle-icon-2048x2048-7dykp8p2.png", width = 200)
+        with colZ2:
+                st.subheader("User Info")
+                st.write("Users can track their own FPL stats. Users can also have access to their past week teams, and compare the points difference.")
 
 # position getter function 
 def position_getter(num):
@@ -141,6 +197,7 @@ def position_getter(num):
                 return "Forward"
 
 # players stats search 
+
 
 if selected == "Players Detailed":
         st.title("Players Search")
@@ -983,11 +1040,21 @@ if selected == 'User Info':
 
                         gameweek_check_link = f"https://fantasy.premierleague.com/api/entry/{user_id}/event/{gameweek_number}/picks/"
 
+                        if gameweek_number != 1:
+                                difference_gameweek = f"https://fantasy.premierleague.com/api/entry/{user_id}/event/{gameweek_number - 1}/picks/"
+
+                                difference_gameweek_response = requests.get(difference_gameweek)
+
+                                if difference_gameweek_response.status_code == 200:
+
+                                        difference_gameweek_data = json.loads(difference_gameweek_response.text)
+
                         user_gameweek_response = requests.get(gameweek_check_link)
 
                         if user_gameweek_response.status_code == 200:
 
                                 user_gameweek_data = json.loads(user_gameweek_response.text)
+                                
 
                         else:
                                 st.write('User ID not found, please re-enter.')
@@ -1044,8 +1111,14 @@ if selected == 'User Info':
 
                                 st.image(player_jersey_url, width = 70)
                                 st.write(user_players_detailed[number]['web_name']) # web name
-                                st.write(f"Points: {individual_player_data['history'][gameweek_number - 1]['total_points']}")
-                                st.write(f"Price: {individual_player_data['history'][gameweek_number - 1]['value'] / 10}")
+
+                                gameweek = 0
+                                for index, player in enumerate(individual_player_data['history']):
+                                        if player['round'] == gameweek_number:
+                                                gameweek = index
+
+                                st.write(f"Points: {individual_player_data['history'][gameweek]['total_points']}")
+                                st.write(f"Price: {individual_player_data['history'][gameweek]['value'] / 10}")
 
 
                         colT1, colT2, colT3 = st.columns((4,2,4))
@@ -1138,6 +1211,27 @@ if selected == 'User Info':
                                                 if remaining == 3:
                                                         player_visualise(-1)
 
+                        colT1, colT2 , colT3 = st.columns(3)
+                        
+                
+                        if gameweek_number != 1:
+                                with colT1:
+                                        st.metric ("Points", user_gameweek_data['entry_history']['points'], user_gameweek_data['entry_history']['points'] - difference_gameweek_data['entry_history']['points'])
+                                with colT2:
+                                        st.metric("Gameweek Rank", user_gameweek_data['entry_history']['rank'], user_gameweek_data['entry_history']['rank'] - difference_gameweek_data['entry_history']['rank'])
+                                with colT3:
+                                        st.metric("Overall Rank", user_gameweek_data['entry_history']['overall_rank'], user_gameweek_data['entry_history']['overall_rank'] - difference_gameweek_data['entry_history']['overall_rank'])
+                        else:
+                                with colT1:
+                                        st.metric ("Points", user_gameweek_data['entry_history']['points'])
+                                with colT2:
+                                        st.metric("Gameweek Rank", user_gameweek_data['entry_history']['rank'])
+                                with colT3:
+                                        st.metric("Overall Rank", user_gameweek_data['entry_history']['overall_rank'])
+
+
+                                
+
 
                         
 
@@ -1148,7 +1242,6 @@ if selected == 'User Info':
 
 
                 
-
 
 
 
