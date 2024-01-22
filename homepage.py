@@ -1063,6 +1063,8 @@ if selected == 'User Info':
 
                         user_players_detailed = []
 
+                        captain = []
+
                         for players in user_gameweek_data['picks'][:11]:
 
                                 user_players.append(players['element'])
@@ -1074,6 +1076,9 @@ if selected == 'User Info':
                                         if players == player['id']:
 
                                                 user_players_detailed.append(player)
+
+                        for players in user_gameweek_data['picks'][:11]:
+                                captain.append(players['is_captain'])
 
                         position_count = {
                                 'Defenders' : 0,
@@ -1110,14 +1115,21 @@ if selected == 'User Info':
                                         player_jersey_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{user_players_detailed[number]['team_code']}-66.webp"
 
                                 st.image(player_jersey_url, width = 70)
-                                st.write(user_players_detailed[number]['web_name']) # web name
+                                if captain[number] == True:
+
+                                        st.write(f"{user_players_detailed[number]['web_name']} (C)") # web name
+                                else:
+                                        st.write(f"{user_players_detailed[number]['web_name']}") # web name
 
                                 gameweek = 0
                                 for index, player in enumerate(individual_player_data['history']):
                                         if player['round'] == gameweek_number:
                                                 gameweek = index
 
-                                st.write(f"Points: {individual_player_data['history'][gameweek]['total_points']}")
+                                if captain[number] == True:
+                                        st.write(f"Points: {individual_player_data['history'][gameweek]['total_points']*2}")
+                                else:
+                                        st.write(f"Points: {individual_player_data['history'][gameweek]['total_points']}")
                                 st.write(f"Price: {individual_player_data['history'][gameweek]['value'] / 10}")
 
 
