@@ -417,7 +417,7 @@ if selected == "Teams / Fixtures":
         with colE3: 
                 st.subheader(sorted_team_detailed_form_data[second_player]['first_name'] + " " + sorted_team_detailed_form_data[second_player]['second_name']) # name
                 st.write(f"Position: {position_getter(sorted_team_detailed_form_data[second_player]['element_type'])}") #positon
-                st.write(f"Form: {sorted_team_detailed_form_data[second_player]['form']}")
+                st.write(f"Form: {sorted_team_detailed_form_data[second_player]['form']}") # buenos dias mr park 디즈 너트
                 st.write(f"Price: £{sorted_team_detailed_form_data[second_player]['now_cost'] / 10}")
 
         # third player 
@@ -893,7 +893,7 @@ if selected == "Team Builder":
 
         # metrics 
 
-        colH1, colH2, colH3 = st.columns (3)
+        colH1, colH2, colH3 = st.columns (3) 
 
         current_gameweek = fixtures_data[0]['event'] - 1 
 
