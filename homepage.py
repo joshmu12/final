@@ -8,7 +8,7 @@ import requests
 import json
 import plotly.express as px 
 
-stats_url = 'https://fantasy.premierleague.com/api/bootstrap-static/'
+stats_url = 'https://fantasy.premierleague.com/api/bootstrap-static/' # API
 
 response = requests.get(stats_url)
 
